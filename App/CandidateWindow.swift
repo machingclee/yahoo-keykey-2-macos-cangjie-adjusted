@@ -173,10 +173,9 @@ final class CandidateWindow {
         stack.spacing = 0
         stack.edgeInsets = NSEdgeInsets()
         content.layer?.borderWidth = 0
-        // Space and Return take the first choice on the page, so that chip is blue unless an
-        // arrow has moved the highlight.
-        let highlight = selected ?? 0
-        cangjieStrip.configure(pageCandidates, hints: hints, highlighted: highlight,
+        // No chip while the code is still being typed. The blue mark is only the choice an
+        // arrow has moved onto; Space and Return still take the first candidate.
+        cangjieStrip.configure(pageCandidates, hints: hints, highlighted: selected,
                                page: page, pageCount: pageCount, fontSize: fontSize)
         updateChromeColors()
         panel.setContentSize(stack.fittingSize)
@@ -361,7 +360,7 @@ private final class CangjieStrip: NSView {
 
     private var candidates: [String] = []
     private var hints: [String?] = []
-    private var highlighted = 0
+    private var highlighted: Int?
     private var page = 0
     private var pageCount = 1
     private var fontSize: CGFloat = 18
@@ -379,7 +378,7 @@ private final class CangjieStrip: NSView {
 
     override var isFlipped: Bool { true }
 
-    func configure(_ candidates: [String], hints: [String?], highlighted: Int,
+    func configure(_ candidates: [String], hints: [String?], highlighted: Int?,
                    page: Int, pageCount: Int, fontSize: CGFloat) {
         self.candidates = Array(candidates.prefix(9))
         self.hints = hints
