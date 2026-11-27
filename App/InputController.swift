@@ -832,7 +832,21 @@ final class InputController: IMKInputController {
         switch event.keyCode {
         case 36: // Return
             guard !engine.composingText.isEmpty else { return false }
-            // Cangjie/Simplex: commit the first candidate of the current page.
+            // 倉頡: Return inserts the radicals on screen (人弓火 stays 人弓火). It is not a
+            // candidate pick. Space and 1–9 still choose a character. Other methods keep
+            // committing the first candidate.
+            if engine is CangjieEngine {
+                let typed = engine.composingText
+                _ = engine.commit()
+                resetCompositionState()
+                associations = []
+                client.insertText(typed, replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
+                client.setMarkedText("", selectionRange: NSRange(location: 0, length: 0),
+                                     replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
+                candidateWindow.hide()
+                return true
+            }
+            // 速成: commit the first candidate of the current page.
             if !engine.candidates.isEmpty {
                 engine.selectCandidate(candidatePage * InputController.pageSize)
             }
@@ -1078,6 +1092,18 @@ final class InputController: IMKInputController {
                 if seg.isCursor { caret = marked.length }
             }
             client.setMarkedText(marked, selectionRange: NSRange(location: caret, length: 0),
+                                 replacementRange: noRange)
+        } else if engine is CangjieEngine {
+            // A plain string is drawn with the client's selected-text background, so the unfinished
+            // code (人日一) is a real selection and sites open their selection menu. An underline
+            // with the caret at the end keeps the code visible without selecting it. Space and
+            // Return still commit. Every other method keeps the plain marked string.
+            let marked = NSAttributedString(string: composing, attributes: [
+                .underlineStyle: NSUnderlineStyle.single.rawValue,
+                .markedClauseSegment: 0,
+            ])
+            client.setMarkedText(marked,
+                                 selectionRange: NSRange(location: composing.utf16.count, length: 0),
                                  replacementRange: noRange)
         } else {
             client.setMarkedText(composing,
