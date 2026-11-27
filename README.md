@@ -37,9 +37,26 @@
 ![切換列選取時，藍色圓圈上的白色倉](docs/images/cangjie-inline-switcher.png)
 
 > [!IMPORTANT]
-> 本分支不發布版本，也沒有自己的更新來源。上游的下載、Homebrew cask 和 **檢查更新…** 裝的都是上游版本，不含上面的改動。要用本分支，請依下面的步驟從原始碼建置。
+> 不編譯的人用下面的安裝檔 **Yahoo! KeyKey 2 Cangjie-Edited**。它和上游正式版分開，不會蓋掉已經裝好的 Yahoo! KeyKey 2。上游的下載、Homebrew cask 和 **檢查更新…** 裝的都是上游版本，不含上面的改動。
 
-## 建置與安裝
+## 安裝
+
+需要 **macOS 26** 和 **Apple 晶片**。安裝檔是 [Yahoo KeyKey 2 Cangjie-Edited.zip](https://github.com/machingclee/yahoo-keykey-2-macos-cangjie-adjusted/releases/download/cangjie-edited/Yahoo%20KeyKey%202%20Cangjie-Edited.zip)。
+
+1. 下載並解壓縮，把 `Yahoo KeyKey 2 Cangjie-Edited.app` 拷貝到 `~/Library/Input Methods/`。資料夾不存在就先建立。不需要管理者密碼。
+2. 若 macOS 說這個 app 已損毀，或來自身分不明的開發者，打開「終端機」執行：
+
+```sh
+xattr -dr com.apple.quarantine ~/Library/Input\ Methods/Yahoo\ KeyKey\ 2\ Cangjie-Edited.app
+```
+
+3. **登出再登入。** macOS 只在登入時尋找新的輸入法。
+4. **系統設定 ▸ 鍵盤**，在 **輸入來源** 旁按 **編輯…**，**+ ▸ 繁體中文** → **倉頡**、**速成**、**注音** 及／或 **拼音**。
+5. 按 **⌃Space** 切換後開始打字。
+
+不要按 **檢查更新…**。
+
+## 從原始碼建置
 
 需要 **macOS 26**、**Apple 晶片**，以及 **Xcode 26 工具鏈**。`./tools/build-lm.sh` 只需要跑一次。
 
