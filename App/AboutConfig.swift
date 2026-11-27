@@ -7,12 +7,12 @@ import DragonKit
 // upstream project credited without a link is a compile error here rather than something found
 // by putting five screenshots side by side.
 // A local debug build is re-id'd to <release-id>.debug and stamped DragonBuildChannel = Debug
-// by tools/build-app.sh, so a test build still shows a distinct "Yahoo! KeyKey 2 Debug" name.
+// by tools/build-app.sh, so this fork still shows a distinct "Yahoo! KeyKey 2 Cangjie-Edited" name.
 enum AboutConfig {
     // The channel the build script stamped, not the bundle id's ".debug" suffix this used to
     // sniff. Two derivations of one fact drift; the kit owns this one as of DragonKit 3.3.0.
     private static let isDebugBuild = DragonAbout.isDebugBuild()
-    static let appName = "Yahoo! KeyKey 2" + (isDebugBuild ? " Debug" : "")
+    static let appName = "Yahoo! KeyKey 2" + (isDebugBuild ? " Cangjie-Edited" : "")
 
     // No " Debug" appended here any more: DragonAbout.versionString() renders the channel
     // itself from DragonBuildChannel — "v2.11.1 Debug (183) · 2026-Aug-09 17:31:39 UTC".

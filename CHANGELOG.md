@@ -4,6 +4,9 @@ A plain-language list of changes in each version, newest first.
 
 ## Unreleased
 
+- **New: the input menu chooses the Cangjie generation.** Below **反查提示**, **使用 3 代倉頡**
+  and **使用 5 代倉頡** each use their own table. The two generations are not mixed. **使用 3 代倉頡**
+  is the default.
 - **Fixed: `戈土心` now types 應 in 五代倉頡.** 五代's classical code is `戈人土心`, and 三代
   already had `戈土心`; 五代 now accepts both, so the shorter code many typists use is no longer
   dead.

@@ -17,26 +17,24 @@
 
 只有**倉頡**改變。速成、注音和拼音的空白鍵仍與上游相同。
 
-- **五代可以用 `戈土心` 打出「應」。** `igp` 加進 `Resources/cangjie.txt`。五代原本的 `戈人土心` 仍然有效，三代本來就有 `戈土心`。
+- **輸入選單可以選倉頡版本，兩代表不混合。** **反查提示** 下面有 **使用 3 代倉頡** 和 **使用 5 代倉頡**。預設是 **使用 3 代倉頡**，也就是 Yahoo! KeyKey 原本的拆法，例如面是 `一田卜中`、鬼是 `竹戈`。5 代是標準拆法，例如面是 `一田尸中`、鬼是 `竹山戈`，而且 `戈土心` 也可以打出「應」。
 - **空白鍵打開候選，而不是直接送出第一個字。** 一個碼有多個完全符合的字時，`大月` 有 有 和 冇，第一次按空白鍵只顯示清單。`1–9` 選字；再按一次空白鍵或 Return 接受第一個；其他可列印字元會先接受第一個，再照常處理。只有一個完全符合的字時，第一次按空白鍵仍然直接送出。空白鍵之前再打的字根仍會加長這個碼。
 - **空白鍵不再用來翻倉頡的候選頁。** 請用方向鍵或 Page Up／Page Down。速成和注音的空白鍵仍然翻頁。
+- **候選字改成一條深色圓角列。** 空白鍵或 Return 會送出的那個字用藍色圓角底標出，其餘候選排在同一列。超過一頁時，列的右端有上下箭頭可以換頁，左右方向鍵也可以。
+
+![倉頡候選列，有以藍色圓角底標出，冇排在旁邊](docs/images/cangjie-candidate-bar.png)
+
 - **候選順序預設固定。** **依選字習慣調整候選字順序** 現在預設關閉，所以用 `2` 選了冇，下次不會排到有的前面。這是全域設定，因此速成、注音、拼音和聯想字詞也維持內建順序。到 **設定… ▸ 一般** 打開，就恢復上游的學習；已經記下來的次數會保留。
 
 邏輯在 `App/InputController.swift`、`App/KeyEventPolicy.swift`，預設值在 `App/Preferences.swift`。細節見 [docs/handoff-cangjie-result-logic.md](docs/handoff-cangjie-result-logic.md)。
 
 ### 圖示
 
-倉頡的模式圖示是一張灰階加透明的倉字（`App/CangjieGlyphTemplate.tiff`）。macOS 著色的方式和 ABC 的「A」、日文的「あ」一樣：淺色切換列是黑字，深色切換列是白字，藍色選取圓是白字，深色選單列也是白字。速成、注音和拼音仍用白底上的全彩紫色 Y（`App/YahooKeyKey.tiff`）。原因見 [docs/adr/0001-cangjie-mode-template-icon.md](docs/adr/0001-cangjie-mode-template-icon.md)。
-
-深色選單列上的白色倉，以及輸入選單裡的同一個字：
+倉頡的圖示是一個倉字，會跟著選單列和切換列變色。
 
 ![深色選單列與輸入選單上的白色倉](docs/images/cangjie-menu-bar.png)
 
-游標旁的切換列裡，藍色選取圓上的白色倉，旁邊是 ABC 的 A 和日文的あ：
-
-![內嵌切換列選取時，藍色圓圈上的白色倉](docs/images/cangjie-inline-switcher.png)
-
-`./tools/run-debug.sh` 安裝的除錯版，模式名稱仍是倉頡／速成／注音／拼音，沒有「(Debug)」。
+![切換列選取時，藍色圓圈上的白色倉](docs/images/cangjie-inline-switcher.png)
 
 > [!IMPORTANT]
 > 本分支不發布版本，也沒有自己的更新來源。上游的下載、Homebrew cask 和 **檢查更新…** 裝的都是上游版本，不含上面的改動。要用本分支，請依下面的步驟從原始碼建置。
@@ -58,7 +56,7 @@ cp -R build/YahooKeyKey2.app ~/Library/Input\ Methods/
 2. **系統設定 ▸ 鍵盤**，在 **輸入來源** 旁按 **編輯…**，**+ ▸ 繁體中文** → **倉頡**、**速成**、**注音** 及／或 **拼音**。
 3. 按 **⌃Space** 切換後開始打字。
 
-若不想蓋掉已經安裝的正式版，執行 `./tools/run-debug.sh`。它會安裝並啟動 `~/Library/Input Methods/Yahoo KeyKey 2 Debug.app`，這是另一個輸入法。模式名稱維持中文。
+若不想蓋掉已經安裝的正式版，執行 `./tools/run-debug.sh`。它會安裝並啟動 `~/Library/Input Methods/Yahoo KeyKey 2 Cangjie-Edited.app`，名稱是 **Yahoo! KeyKey 2 Cangjie-Edited**。模式名稱維持中文。
 
 重新建置後，替換當初安裝的那個 app，再登出登入。不要用 **檢查更新…**，也不要把本分支裝到上游 Homebrew cask 的位置上：兩者的 bundle id 相同。
 

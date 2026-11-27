@@ -65,8 +65,8 @@ private struct GeneralPaneView: View {
 
             DragonSection(LocalizedStringKey(L("keykey.general.inputMethod"))) {
                 Picker(L("keykey.general.cangjieVersion"), selection: $model.cangjieVersion) {
-                    Text(L("keykey.general.cangjieV5")).tag(CangjieVersion.v5)
                     Text(L("keykey.general.cangjieV3")).tag(CangjieVersion.v3)
+                    Text(L("keykey.general.cangjieV5")).tag(CangjieVersion.v5)
                 }
                 .dragonAnnotation(LocalizedStringKey(L("keykey.general.cangjieVersionHint")))
                 Picker(L("keykey.general.zhuyinLayout"), selection: $model.zhuyinLayout) {

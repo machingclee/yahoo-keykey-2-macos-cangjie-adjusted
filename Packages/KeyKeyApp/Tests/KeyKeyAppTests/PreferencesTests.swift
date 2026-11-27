@@ -140,14 +140,14 @@ final class PreferencesTests: XCTestCase {
         XCTAssertEqual(Preferences.cangjieVersion, .v5)
     }
 
-    func testCangjieVersionUnknownRawFallsBackToV5() {
+    func testCangjieVersionUnknownRawFallsBackToV3() {
         defaults.set("99", forKey: "cangjieVersion")         // not a valid case
-        XCTAssertEqual(Preferences.cangjieVersion, .v5)
+        XCTAssertEqual(Preferences.cangjieVersion, .v3)
     }
 
-    func testCangjieVersionAbsentFallsBackToV5() {
+    func testCangjieVersionAbsentFallsBackToV3() {
         defaults.removeObject(forKey: "cangjieVersion")
-        XCTAssertEqual(Preferences.cangjieVersion, .v5)
+        XCTAssertEqual(Preferences.cangjieVersion, .v3)
     }
 
     // MARK: associationSelectionTrigger
@@ -210,7 +210,7 @@ final class PreferencesTests: XCTestCase {
         XCTAssertFalse(Preferences.adaptiveCandidateOrderEnabled)
         XCTAssertFalse(Preferences.shiftSpaceFullWidthSpaceEnabled)
         XCTAssertFalse(Preferences.completionsEnabled)
-        XCTAssertEqual(Preferences.cangjieVersion, .v5)
+        XCTAssertEqual(Preferences.cangjieVersion, .v3)
         XCTAssertEqual(Preferences.associationSelectionTrigger, .number)
         // 大千 by default: the layout on a Taiwanese keyboard, and the original Yahoo! KeyKey's.
         XCTAssertEqual(Preferences.zhuyinLayout, .dachen)

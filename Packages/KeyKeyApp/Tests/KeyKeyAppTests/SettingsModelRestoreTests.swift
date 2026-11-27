@@ -69,7 +69,7 @@ final class SettingsModelRestoreTests: XCTestCase {
         model.syncFromPreferences()
 
         XCTAssertEqual(model.candidateFontSize, 18)
-        XCTAssertEqual(model.cangjieVersion, .v5)
+        XCTAssertEqual(model.cangjieVersion, .v3)
         XCTAssertEqual(model.zhuyinLayout, .dachen)
         XCTAssertEqual(model.associationTrigger, .number)
         XCTAssertEqual(defaults.persistentDomain(forName: domain)! as NSDictionary, restored)
@@ -111,7 +111,7 @@ final class SettingsModelRestoreTests: XCTestCase {
             XCTAssertEqual(model[keyPath: binding.0], binding.2)
         }
         XCTAssertEqual(model.candidateFontSize, 18)
-        XCTAssertEqual(model.cangjieVersion, .v5)
+        XCTAssertEqual(model.cangjieVersion, .v3)
         XCTAssertEqual(model.zhuyinLayout, .dachen)
         XCTAssertEqual(model.associationTrigger, .number)
         XCTAssertEqual(defaults.persistentDomain(forName: domain)! as NSDictionary, restored as NSDictionary)

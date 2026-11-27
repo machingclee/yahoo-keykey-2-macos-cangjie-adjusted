@@ -25,7 +25,7 @@ final class SystemInstallTests: XCTestCase {
                        .currentUser)
         // The Debug build lives there too, under its own name, and moves to its own name.
         XCTAssertEqual(SystemInstall.location(
-            ofBundleAt: "/Users/someone/Library/Input Methods/Yahoo KeyKey 2 Debug.app",
+            ofBundleAt: "/Users/someone/Library/Input Methods/Yahoo KeyKey 2 Cangjie-Edited.app",
             homeDirectory: Self.home, homebrewTargets: []), .currentUser)
     }
 

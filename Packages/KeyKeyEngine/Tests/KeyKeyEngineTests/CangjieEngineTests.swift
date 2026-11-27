@@ -108,6 +108,14 @@ final class CangjieEngineTests: XCTestCase {
         XCTAssertEqual(e.composingText, "日")
     }
 
+    func testLoneAsteriskCommitsAsAsterisk() {
+        let e = make()
+        XCTAssertTrue(e.handleKey("*"))
+        XCTAssertEqual(e.composingText, "*")
+        XCTAssertEqual(e.candidates, [])
+        XCTAssertEqual(e.commit(), "*")
+    }
+
     func testWildcardIsConsumedAndShownLiterally() {
         let e = make()
         _ = e.handleKey("a")
@@ -120,6 +128,24 @@ final class CangjieEngineTests: XCTestCase {
         _ = e.handleKey("a"); _ = e.handleKey("*")
         // "a*" matches "ab","abc","abcde","abcdef" (≥1 letter after a)
         XCTAssertEqual(e.candidates, ["明", "冒", "韻", "漏"])
+    }
+
+    func testRadicalStarRadicalUsesTheSimplexList() {
+        // 伙 is exactly 人火. 你 is 人弓火, 係 is 人竹女火, 焦 is 人土火.
+        // 人*火 is the 速成 code 人火, in that table's order. The full-code wildcard
+        // would drop 伙 (nothing between 人 and 火) and bury 你 behind rarer codes.
+        let lines = """
+        of\t伙
+        onf\t你
+        ohvf\t係
+        obf\t焦
+        """
+        let e = CangjieEngine(table: CangjieTable(text: lines), tableVersion: "3",
+                              simplexTable: SimplexTable(text: lines))
+        for k in "o*f" { _ = e.handleKey(k) }
+        XCTAssertEqual(e.composingText, "人*火")
+        XCTAssertEqual(Array(e.candidates.prefix(4)), ["伙", "你", "係", "焦"])
+        XCTAssertEqual(e.candidateListKey, .simplex(tableVersion: "3", code: "of"))
     }
 
     func testWildcardBetweenLiterals() {

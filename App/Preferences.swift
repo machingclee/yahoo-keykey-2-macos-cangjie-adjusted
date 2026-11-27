@@ -5,8 +5,8 @@ import KeyKeyEngine
 // 倉頡/速成 engines use. 五代 keeps the standard McBopomofo LM ranking; 三代 uses the
 // original Yahoo! KeyKey table (cj-ext.cin) and its native candidate order.
 enum CangjieVersion: String {
-    case v5 = "5"          // 五代倉頡 (default) — bundled ibus cangjie5 table + LM ranking
-    case v3 = "3"          // 三代倉頡 — Yahoo! KeyKey cj-ext table + native order
+    case v5 = "5"          // 五代倉頡 — bundled ibus cangjie5 table + LM ranking
+    case v3 = "3"          // 三代倉頡 (default) — Yahoo! KeyKey cj-ext table + native order
 }
 
 // Which key selects an associated phrase (聯想) in the numbered candidate window.
@@ -55,7 +55,7 @@ enum Preferences {
             Key.associatedPhrasesEnabled: true,
             Key.fullWidthPunctuationEnabled: true,
             Key.outputSimplifiedEnabled: false,
-            Key.cangjieVersion: CangjieVersion.v5.rawValue,
+            Key.cangjieVersion: CangjieVersion.v3.rawValue,
             Key.associationContinuationOnly: false,
             Key.codeHintEnabled: false,
             Key.associationSelectionTrigger: AssociationTrigger.number.rawValue,
@@ -94,9 +94,9 @@ enum Preferences {
         set { UserDefaults.standard.set(newValue, forKey: Key.outputSimplifiedEnabled) }
     }
 
-    // Selected Cangjie table; unknown/absent falls back to 五代 (the registered default).
+    // Selected Cangjie table; unknown/absent falls back to 三代 (the registered default).
     static var cangjieVersion: CangjieVersion {
-        get { CangjieVersion(rawValue: UserDefaults.standard.string(forKey: Key.cangjieVersion) ?? "") ?? .v5 }
+        get { CangjieVersion(rawValue: UserDefaults.standard.string(forKey: Key.cangjieVersion) ?? "") ?? .v3 }
         set { UserDefaults.standard.set(newValue.rawValue, forKey: Key.cangjieVersion) }
     }
 
