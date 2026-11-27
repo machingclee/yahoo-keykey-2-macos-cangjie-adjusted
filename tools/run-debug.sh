@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build + install + launch a LOCAL DEBUG build of Yahoo! KeyKey 2.
 #
-# It registers as a SEPARATE input method — "Yahoo! KeyKey 2 Debug", bundle id
+# It registers as a SEPARATE input method — "Yahoo! KeyKey 2 Cangjie-Edited", bundle id
 # com.dragonapp.inputmethod.yahoo-keykey.debug — so it never collides with or shadows the installed
 # RELEASE IME (com.dragonapp.inputmethod.yahoo-keykey). Two bundles sharing the release id register as
 # duplicates in Launch Services and hide the real input source from the Input Sources picker.
@@ -11,7 +11,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEBUG_NAME="Yahoo KeyKey 2 Debug"
+DEBUG_NAME="Yahoo KeyKey 2 Cangjie-Edited"
 SRC="$ROOT/build/${DEBUG_NAME}.app"
 DST="$HOME/Library/Input Methods/${DEBUG_NAME}.app"
 LSREG="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
@@ -31,7 +31,15 @@ fi
 
 echo "==> Installing to ~/Library/Input Methods"
 pkill -f "${DEBUG_NAME}.app/Contents/MacOS" 2>/dev/null || true
+# The same input method used to be installed under the Debug filename. Remove that copy so
+# Launch Services does not keep both paths for one bundle id.
+OLD_DST="$HOME/Library/Input Methods/Yahoo KeyKey 2 Debug.app"
+pkill -f "Yahoo KeyKey 2 Debug.app/Contents/MacOS" 2>/dev/null || true
 sleep 1
+if [ -e "$OLD_DST" ]; then
+  "$LSREG" -u "$OLD_DST" 2>/dev/null || true
+  rm -rf "$OLD_DST"
+fi
 rm -rf "$DST"
 mkdir -p "$HOME/Library/Input Methods"
 cp -R "$SRC" "$DST"
@@ -40,7 +48,7 @@ echo "==> Registering + launching"
 "$LSREG" -f "$DST" 2>/dev/null || true
 # -n launches the bundle at THIS exact path. A plain `open` resolves through Launch Services,
 # which is free to activate some other registered copy of the same id — and this repo carries
-# several worktrees, each able to leave a `build/Yahoo KeyKey 2 Debug.app` registered, so
+# several worktrees, each able to leave a `build/Yahoo KeyKey 2 Cangjie-Edited.app` registered, so
 # "debugging a binary you did not just compile" is a live hazard here rather than a theoretical
 # one. The release IME is a different id and was never reachable either way.
 open -n "$DST"
@@ -62,7 +70,7 @@ killall TextInputSwitcher 2>/dev/null || true
 
 cat <<EOF
 
-Debug IME installed: $DST
+Cangjie-Edited IME installed: $DST
 Add it in System Settings -> Keyboard -> "Edit..." beside Input Sources (the + is inside that
 sheet, not on the settings page) -> + -> Chinese, Traditional ->
 倉頡 / 速成 / 注音 / 拼音. If they don't appear at all, log

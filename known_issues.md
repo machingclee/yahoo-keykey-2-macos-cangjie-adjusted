@@ -61,8 +61,9 @@ whichever app happened to be in front when secure input was switched on, not the
 **三代** and **五代** are two different Cangjie tables, and they spell some characters
 differently — 面 is `一田卜中` in 三代 but `一田尸中` in 五代; 鬼 is `竹戈` versus `竹山戈`.
 
-**Fix:** check which table is selected in **設定… ▸ 輸入方式**. Turning on **反查提示** shows
-each candidate's code next to it, so you can see what the current table expects.
+**Fix:** under **反查提示** in the input menu, choose **使用 3 代倉頡** or **使用 5 代倉頡**.
+The same choice is in **設定… ▸ 輸入方式**. Turning on **反查提示** shows each candidate's
+code next to it, so you can see what the current table expects.
 
 ## 4. Space pages instead of accepting my code
 

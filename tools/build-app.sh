@@ -12,8 +12,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$ROOT/build"
-# Debug identity (opt-in via KEYKEY_DEBUG_ID=1): build a SEPARATE input method named
-# "Yahoo! KeyKey 2 Debug" with bundle id com.dragonapp.inputmethod.yahoo-keykey.debug, so a local test
+# Fork identity (opt-in via KEYKEY_DEBUG_ID=1): build a SEPARATE input method named
+# "Yahoo! KeyKey 2 Cangjie-Edited" with bundle id com.dragonapp.inputmethod.yahoo-keykey.debug, so a local test
 # build never collides with / shadows the installed RELEASE IME. (Two bundles sharing the
 # release id register as duplicates in Launch Services and hide the real input source from
 # the Input Sources picker.) Release/CI builds leave KEYKEY_DEBUG_ID unset and are unaffected.
@@ -23,7 +23,7 @@ if [[ "${KEYKEY_DEBUG_ID:-}" == "1" ]]; then
   # "!" on purpose, like the release's YahooKeyKey2.app (#126): tools/run-debug.sh installs, kills
   # and relaunches by this exact path, and renaming it would strand the old bundle in
   # ~/Library/Input Methods beside the new one, two copies claiming the one .debug id.
-  APP_BUNDLE_NAME="Yahoo KeyKey 2 Debug"
+  APP_BUNDLE_NAME="Yahoo KeyKey 2 Cangjie-Edited"
   DEBUG_BUNDLE_ID="${RELEASE_BUNDLE_ID}.debug"
 else
   APP_BUNDLE_NAME="YahooKeyKey2"
@@ -257,7 +257,7 @@ if [[ "${KEYKEY_DEBUG_ID:-}" == "1" ]]; then
   # A plain assignment, so set -e stops the build if a key is missing rather than writing " Debug".
   for key in CFBundleName CFBundleDisplayName; do
     NAME="$(plutil -extract "$key" raw -o - "$PLIST")"
-    plutil -replace "$key" -string "$NAME Debug" "$PLIST"
+    plutil -replace "$key" -string "$NAME Cangjie-Edited" "$PLIST"
   done
   # The version field stays the numeric candidate for the NEXT public release — never
   # "2.11.1 (Debug)". MAC-APP-RELEASE-LIFECYCLE.md makes CFBundleShortVersionString the sole
@@ -290,13 +290,13 @@ if [[ "${KEYKEY_DEBUG_ID:-}" == "1" ]]; then
   # fine: this runs again on a rebuild into an existing bundle, where the key is already gone.
   /usr/libexec/PlistBuddy -c "Delete :SUFeedURL" "$PLIST" 2>/dev/null || true
   # Re-key the localized input-mode display names (倉頡 / 速成) to the .debug mode ids, and
-  # re-label the localized app name so the picker/menu show "Yahoo! KeyKey 2 Debug" (the
+  # re-label the localized app name so the picker/menu show "Yahoo! KeyKey 2 Cangjie-Edited" (the
   # localized CFBundleDisplayName here would otherwise override the Info.plist value above).
   # Keyed on the CFBundleName / CFBundleDisplayName lines for the same reason as the plist.
   for sf in "$APP/Contents/Resources"/*.lproj/InfoPlist.strings; do
     [ -f "$sf" ] || continue
     sed -i '' "s|${RELEASE_BUNDLE_ID}|${DEBUG_BUNDLE_ID}|g" "$sf"
-    sed -i '' -E 's|^(CFBundle(Display)?Name = "[^"]*)(";)$|\1 Debug\3|' "$sf"
+    sed -i '' -E 's|^(CFBundle(Display)?Name = "[^"]*)(";)$|\1 Cangjie-Edited\3|' "$sf"
     # Mode names stay 倉頡 / 速成 / 注音 / 拼音. The bundle id is already .debug, so this build
     # does not collide with the release, and the menu row should not wear a "(Debug)" suffix.
     # These files are now regex-edited rather than merely re-keyed, so prove each one still parses.
@@ -311,8 +311,8 @@ if [[ "${KEYKEY_DEBUG_ID:-}" == "1" ]]; then
   for f in "$PLIST" "$APP/Contents/Resources"/*.lproj/InfoPlist.strings; do
     for key in CFBundleName CFBundleDisplayName; do
       NAME="$(/usr/libexec/PlistBuddy -c "Print :$key" "$f" 2>/dev/null || true)"
-      if [[ "$NAME" != *" Debug" ]]; then
-        echo "ERROR: $key in ${f#"$APP/"} is '$NAME', not a Debug name — the debug rename matched nothing" >&2
+      if [[ "$NAME" != *" Cangjie-Edited" ]]; then
+        echo "ERROR: $key in ${f#"$APP/"} is '$NAME', not a Cangjie-Edited name — the rename matched nothing" >&2
         exit 1
       fi
     done

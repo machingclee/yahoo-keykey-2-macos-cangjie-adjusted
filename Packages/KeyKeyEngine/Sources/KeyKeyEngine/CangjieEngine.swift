@@ -25,6 +25,10 @@ public final class CangjieEngine {
     // Whether completions follow the exact matches. Read live, like `usageCount`, so the setting
     // applies to the next code typed without rebuilding the engine.
     private let showsCompletions: () -> Bool
+    // When set, a code shaped 人*火 (one radical, `*`, one radical) is the 速成 code 人火.
+    // The 速成 table's own order is what a 速成 typist expects; the full-code wildcard
+    // sort puts rare characters first and buries 你.
+    private let simplexTable: SimplexTable?
     private var code: String = ""
     private var selected: String?
     // Cached result of the candidate computation; invalidated (nil) on any state
@@ -37,12 +41,14 @@ public final class CangjieEngine {
     public init(table: CangjieTable, characterRank: [Character: Double] = [:],
                 tableVersion: String,
                 usageCount: @escaping (CandidateListKey, String) -> Int = { _, _ in 0 },
-                showsCompletions: @escaping () -> Bool = { false }) {
+                showsCompletions: @escaping () -> Bool = { false },
+                simplexTable: SimplexTable? = nil) {
         self.table = table
         self.characterRank = characterRank
         self.tableVersion = tableVersion
         self.usageCount = usageCount
         self.showsCompletions = showsCompletions
+        self.simplexTable = simplexTable
     }
 
     /// Returns true if the key was consumed by the engine.
@@ -66,11 +72,11 @@ public final class CangjieEngine {
     /// Characters whose code matches the current radical sequence (supports `*`), then, with
     /// completions on, the characters `code*` matches. Each tier is ordered frequency-first over
     /// the built-in order (see `CandidateOrdering`); with no committed usage the table/rank order
-    /// is preserved unchanged.
-    public var candidates: [String] { tiers.all }
+    /// is preserved unchanged. A code that is only `*` is a literal asterisk, not a search.
+    public var candidates: [String] { code == "*" ? [] : tiers.all }
 
     /// How many leading `candidates` match the code exactly; the rest are completions.
-    public var exactCandidateCount: Int { tiers.exactCount }
+    public var exactCandidateCount: Int { code == "*" ? 0 : tiers.exactCount }
 
     private var tiers: TieredCandidates {
         if let cachedTiers { return cachedTiers }
@@ -80,6 +86,12 @@ public final class CangjieEngine {
     }
 
     private func computeTiers() -> TieredCandidates {
+        // 人*火 is 速成 for 人火: the same characters, in the 速成 table's order.
+        if let quick = simplexQuickCode, let simplexTable {
+            let list = CandidateListKey.simplex(tableVersion: tableVersion, code: quick)
+            return TieredCandidates(exact: ordered(simplexTable.characters(forCode: quick), in: list),
+                                    in: list)
+        }
         guard let list = candidateListKey else { return .none }
         let exact = ordered(table.characters(matching: code), in: list)
         // A code that already carries `*` asked for its own wildcard, so it gets no completions.
@@ -103,8 +115,23 @@ public final class CangjieEngine {
     /// A code carrying `*` is its OWN list, keyed by the pattern as typed: `h*i` matches a
     /// different set of characters than the exact code `hi` does, and than `h*e` does, so usage
     /// under one must not move the others.
+    /// 人*火 (`o*f`) is the 速成 code 人火 (`of`). Anything else that contains `*` stays a
+    /// wildcard over the full 倉頡 code.
+    private var simplexQuickCode: String? {
+        guard simplexTable != nil, let star = code.firstIndex(of: "*") else { return nil }
+        let head = code[..<star]
+        let tail = code[code.index(after: star)...]
+        guard head.count == 1, tail.count == 1,
+              Self.radicals[head[head.startIndex]] != nil,
+              Self.radicals[tail[tail.startIndex]] != nil else { return nil }
+        return String(head) + String(tail)
+    }
+
     public var candidateListKey: CandidateListKey? {
         guard !code.isEmpty else { return nil }
+        if let quick = simplexQuickCode {
+            return .simplex(tableVersion: tableVersion, code: quick)
+        }
         return code.contains("*")
             ? .cangjieWildcard(tableVersion: tableVersion, pattern: code)
             : .cangjie(tableVersion: tableVersion, code: code)
@@ -136,7 +163,9 @@ public final class CangjieEngine {
 
     @discardableResult
     public func commit() -> String {
-        let text = selected ?? candidates.first ?? ""
+        // A lone `*` is the asterisk character. Enter and Space commit it as `*`, not as the
+        // first character of a search that would match every code.
+        let text = (code == "*" && selected == nil) ? "*" : (selected ?? candidates.first ?? "")
         code = ""
         selected = nil
         cachedTiers = nil

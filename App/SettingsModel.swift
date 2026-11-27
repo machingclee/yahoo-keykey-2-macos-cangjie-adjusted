@@ -139,6 +139,8 @@ final class SettingsModel {
     // getter never registers an observation dependency, so SwiftUI drops the change); a stored
     // property is tracked, so the Picker sticks. `didSet` writes through to Preferences (the
     // engine reads that directly) and reloads the shared tables + live engines.
+    // The input menu's 使用 3 代倉頡 / 使用 5 代倉頡 items write Preferences directly and post
+    // .cangjieVersionChanged; the observer below copies that back so this Picker stays current.
     var cangjieVersion: CangjieVersion = Preferences.cangjieVersion {
         didSet {
             guard cangjieVersion != Preferences.cangjieVersion else { return }
@@ -154,8 +156,8 @@ final class SettingsModel {
     // Nothing in SharedResources is reloaded: the ㄅ半 table is the same table whichever keyboard
     // types it.
     //
-    // Unlike cangjieVersion, this setting has a SECOND writer — the input menu writes Preferences
-    // directly — so this mirror can fall behind it. Two things keep that harmless. The guard
+    // The input menu writes Preferences directly, so this mirror can fall behind it. Two things
+    // keep that harmless. The guard
     // compares against Preferences, not oldValue, so picking the value a stale Picker already
     // shows is still written; comparing against oldValue made that pick a no-op, and the user could
     // not switch back from Settings at all. And init follows .zhuyinLayoutChanged, so the Picker
@@ -172,11 +174,22 @@ final class SettingsModel {
     // Never removed: the one SettingsModel lives as long as the process (AppMenuController.shared),
     // and the block holds it weakly.
     @ObservationIgnored private var zhuyinLayoutObserver: NSObjectProtocol?
+    @ObservationIgnored private var cangjieVersionObserver: NSObjectProtocol?
 
     @ObservationIgnored private let onCangjieVersionChange: () -> Void
 
     init(onCangjieVersionChange: @escaping () -> Void) {
         self.onCangjieVersionChange = onCangjieVersionChange
+        cangjieVersionObserver = NotificationCenter.default.addObserver(
+            forName: .cangjieVersionChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            MainActor.assumeIsolated {
+                let current = Preferences.cangjieVersion
+                if self.cangjieVersion != current { self.cangjieVersion = current }
+                self.preferencesRevision &+= 1
+            }
+        }
         zhuyinLayoutObserver = NotificationCenter.default.addObserver(
             forName: .zhuyinLayoutChanged, object: nil, queue: .main
         ) { [weak self] _ in

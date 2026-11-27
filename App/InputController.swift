@@ -92,7 +92,8 @@ final class InputController: IMKInputController {
             InputMethodModule(modeSuffix: "Cangjie", displayName: "倉頡") {
                 CangjieEngine(table: shared.cangjieTable, characterRank: shared.cangjieRank,
                               tableVersion: Preferences.cangjieVersion.rawValue, usageCount: usageCount,
-                              showsCompletions: { Preferences.completionsEnabled })
+                              showsCompletions: { Preferences.completionsEnabled },
+                              simplexTable: shared.simplexTable)
             },
             InputMethodModule(modeSuffix: "Simplex", displayName: "速成") {
                 SimplexEngine(table: shared.simplexTable, characterRank: shared.cangjieRank,
@@ -147,6 +148,43 @@ final class InputController: IMKInputController {
                                                name: .cangjieVersionChanged, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(rebuildActiveEngine),
                                                name: .zhuyinLayoutChanged, object: nil)
+        candidateWindow.onTurnPage = { [weak self] delta in
+            guard let self, let client = self.client() else { return }
+            self.turnPage(by: delta, client: client)
+        }
+    }
+
+    // In 倉頡, when the list has more than one page, Left and Right turn the page. The text
+    // view delivers those keys here. Every other method, and a one-page 倉頡 list, is left
+    // untouched so its own arrow behaviour stays as it was.
+    override func didCommand(by selector: Selector!, client sender: Any!) -> Bool {
+        guard engine is CangjieEngine, associations.isEmpty,
+              let selector, let client = sender as? IMKTextInput else { return false }
+        let delta: Int
+        switch selector {
+        case #selector(NSResponder.moveLeft(_:)): delta = -1
+        case #selector(NSResponder.moveRight(_:)): delta = 1
+        default: return false
+        }
+        let count = engine.candidates.count
+        guard count > InputController.pageSize else { return false }
+        return turnPage(by: delta, client: client)
+    }
+
+    // Moves one page when a candidate list or 聯想 list is up. Returns true when the key is
+    // consumed, including at the first and last page, so the caret does not also move.
+    @discardableResult
+    private func turnPage(by delta: Int, client: IMKTextInput) -> Bool {
+        if engine is PhraseComposingEngine, associations.isEmpty { return false }
+        let count = associations.isEmpty ? engine.candidates.count : associations.count
+        guard count > 0 else { return false }
+        let lastPage = (count - 1) / InputController.pageSize
+        let next = candidatePage + delta
+        guard next >= 0, next <= lastPage else { return true }
+        guard next != candidatePage else { return true }
+        candidatePage = next
+        refresh(client)
+        return true
     }
 
     deinit {
@@ -230,6 +268,18 @@ final class InputController: IMKInputController {
         codeHint.target = self
         codeHint.state = Preferences.codeHintEnabled ? .on : .off
         menu.addItem(codeHint)
+
+        // 倉頡版本 sits under 反查提示. The two tables stay separate: checking one loads only
+        // that generation. IMK routes the selection back to this controller.
+        let cangjieV3 = NSMenuItem(title: "使用 3 代倉頡", action: #selector(selectCangjieVersion3), keyEquivalent: "")
+        cangjieV3.target = self
+        cangjieV3.state = Preferences.cangjieVersion == .v3 ? .on : .off
+        menu.addItem(cangjieV3)
+
+        let cangjieV5 = NSMenuItem(title: "使用 5 代倉頡", action: #selector(selectCangjieVersion5), keyEquivalent: "")
+        cangjieV5.target = self
+        cangjieV5.state = Preferences.cangjieVersion == .v5 ? .on : .off
+        menu.addItem(cangjieV5)
 
         // 2. Settings specific to the active input method (grouped with their method).
         // Empty for Cangjie/Simplex today; future methods supply items via methodMenuItems.
@@ -372,6 +422,17 @@ final class InputController: IMKInputController {
 
     @objc private func toggleCodeHint() {
         Preferences.codeHintEnabled.toggle()
+    }
+
+    @objc private func selectCangjieVersion3() { setCangjieVersion(.v3) }
+    @objc private func selectCangjieVersion5() { setCangjieVersion(.v5) }
+
+    // Persist the generation and rebuild the live tables and engines. 3 代 and 5 代 stay
+    // separate tables; this only switches which one is loaded.
+    private func setCangjieVersion(_ version: CangjieVersion) {
+        guard Preferences.cangjieVersion != version else { return }
+        Preferences.cangjieVersion = version
+        SharedResources.shared.reloadCangjieTables()
     }
 
     // IMK invokes these input-menu selectors on the main thread, so entering the main actor
@@ -1073,6 +1134,10 @@ final class InputController: IMKInputController {
                                  fontSize: Preferences.candidateFontSize, hints: hints,
                                  selected: associations.isEmpty
                                      ? candidateHighlight.map { $0 - candidatePage * size } : nil,
+                                 showsPageIndicator: currentModule.modeSuffix != "Cangjie"
+                                     || !associations.isEmpty
+                                     || engine.composingText.contains("*"),
+                                 cangjieBar: engine is CangjieEngine && associations.isEmpty,
                                  near: rect)
         }
     }
