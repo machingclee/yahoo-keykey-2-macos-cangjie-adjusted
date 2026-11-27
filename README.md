@@ -41,7 +41,7 @@
 
 ## 安裝
 
-需要 **macOS 26** 和 **Apple 晶片**。安裝檔是 [Yahoo KeyKey 2 Cangjie-Edited.zip](https://github.com/machingclee/yahoo-keykey-2-macos-cangjie-adjusted/releases/download/cangjie-edited/Yahoo%20KeyKey%202%20Cangjie-Edited.zip)。
+需要 **macOS 26** 和 **Apple 晶片**。安裝檔是 [Yahoo KeyKey 2 Cangjie-Edited.zip](https://github.com/machingclee/yahoo-keykey-2-macos-cangjie-adjusted/releases/download/cangjie-edited/Yahoo.KeyKey.2.Cangjie-Edited.zip)。
 
 1. 下載並解壓縮，把 `Yahoo KeyKey 2 Cangjie-Edited.app` 拷貝到 `~/Library/Input Methods/`。資料夾不存在就先建立。不需要管理者密碼。
 2. 若 macOS 說這個 app 已損毀，或來自身分不明的開發者，打開「終端機」執行：
